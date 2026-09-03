@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>KataHaifisch Podcasts</title>
+    <link>https://soundcloud.com/katahaifisch</link>
+    <language>de</language>
+    <description>KataHaifisch Podcast Sets (Ab 20 Minuten)</description>
+    <itunes:image href="https://i1.sndcdn.com/avatars-000332857007-z11j49-original.jpg"/>
+    <itunes:owner>
+      <itunes:name>KataHaifisch</itunes:name>
+      <itunes:email>info@katahaifisch.de</itunes:email>
+    </itunes:owner>
+
+  </channel>
+</rss>
