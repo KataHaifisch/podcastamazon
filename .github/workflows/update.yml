@@ -26,5 +26,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add katahaifisch_podcasts.xml
+          git add katahaifisch_podcasts.xml applekatahaifisch_all.xml
+
           git diff --staged --quiet || (git commit -m "Auto-update: Neue Podcasts hinzugefügt" && git push)
