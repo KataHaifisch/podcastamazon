@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>KataHaifisch</title>
+    <link>https://soundcloud.com/katahaifisch</link>
+    <language>de</language>
+    <description>KataHaifisch - All Tracks &amp; Podcasts</description>
+    <itunes:image href="https://i1.sndcdn.com/avatars-Vjouh9dpLJd6FKBF-vUhczw-t500x500.jpg"/>
+    <itunes:owner>
+      <itunes:name>KataHaifisch</itunes:name>
+      <itunes:email>info@katahaifisch.de</itunes:email>
+    </itunes:owner>
+    <itunes:category text="Music"/>
+    <itunes:explicit>false</itunes:explicit>
+  </channel>
+</rss>
