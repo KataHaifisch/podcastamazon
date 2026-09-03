@@ -42,6 +42,9 @@ def process_feed(file_path, filter_20min=False):
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
+    # Alle 500x500 Bild-Links automatisch auf hochauflösende 3000x3000px upgraden
+    content = content.replace("t500x500", "t3000x3000")
+
     existing_guids = set(re.findall(r"<guid[^>]*>(.*?)</guid>", content, re.DOTALL))
     new_items = []
 
@@ -67,6 +70,7 @@ def process_feed(file_path, filter_20min=False):
 
         img = item.find("itunes:image", ns)
         img_url = img.attrib.get("href", "") if img is not None else ""
+        img_url = img_url.replace("t500x500", "t3000x3000")
 
         item_xml = f"""    <item>
       <title><![CDATA[{title}]]></title>
@@ -85,24 +89,26 @@ def process_feed(file_path, filter_20min=False):
         for it in archive_items:
             g = re.search(r"<guid[^>]*>(.*?)</guid>", it)
             if g and g.group(1).strip() not in existing_guids:
-                extra_archive.append("    " + it.strip())
+                it_upgraded = it.replace("t500x500", "t3000x3000")
+                extra_archive.append("    " + it_upgraded.strip())
                 existing_guids.add(g.group(1).strip())
 
     total_to_add = new_items + extra_archive
+    updated = content
     if total_to_add:
-        pos = content.find("<item>")
+        pos = updated.find("<item>")
         if pos != -1:
-            updated = content[:pos] + "\n".join(new_items) + "\n" + content[pos:]
+            updated = updated[:pos] + "\n".join(new_items) + "\n" + updated[pos:]
             if extra_archive:
                 end_pos = updated.rfind("</channel>")
                 updated = updated[:end_pos] + "\n".join(extra_archive) + "\n  " + updated[end_pos:]
         else:
-            end_pos = content.find("</channel>")
-            updated = content[:end_pos] + "\n".join(total_to_add) + "\n  " + content[end_pos:]
+            end_pos = updated.find("</channel>")
+            updated = updated[:end_pos] + "\n".join(total_to_add) + "\n  " + content[end_pos:]
 
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(updated)
-        print(f"{file_path} aktualisiert.")
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(updated)
+    print(f"{file_path} verarbeitet.")
 
 process_feed(PODCAST_20MIN_FILE, filter_20min=True)
 process_feed(ALL_TRACKS_FILE, filter_20min=False)
