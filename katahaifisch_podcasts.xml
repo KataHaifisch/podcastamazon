@@ -4,7 +4,7 @@
     <title>KataHaifisch Podcasts</title>
     <link>https://soundcloud.com/katahaifisch</link>
     <language>de</language>
-    <description>KataHaifisch Podcast </description>
+    <itunes:subtitle>KataHaifisch Podcast / Live Sets &amp; Recordings</itunes:subtitle>
     <itunes:image href="https://i1.sndcdn.com/avatars-000332857007-z11j49-original.jpg"/>
     <itunes:owner>
       <itunes:name>KataHaifisch</itunes:name>
