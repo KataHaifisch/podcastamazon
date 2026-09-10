@@ -27,6 +27,7 @@ def extract_track_id(text):
     return m.group(1) if m else text.strip()
 
 def clean_xml_content(xml_text):
+    xml_text = xml_text.replace("https://feeds.soundcloud.com/stream/", "https://op3.dev/e/https://feeds.soundcloud.com/stream/")
     """Normalisiert GUIDs zu tag:soundcloud,2010:tracks/<id> und setzt 3000px Cover."""
     xml_text = re.sub(
         r"<guid([^>]*)>.*?(?:tracks[:/]|)(\d{6,})</guid>",
