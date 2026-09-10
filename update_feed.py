@@ -3,8 +3,8 @@ import xml.etree.ElementTree as ET
 import re
 
 SC_FEED_URL = "https://feeds.soundcloud.com/users/soundcloud:users:173046334/sounds.rss"
-ARCHIV_URL = "https://raw.githubusercontent.com/KataHaifisch/podcast/main/katahaifisch_archiv.xml"
-PODCAST_20MIN_FILE = "katahaifisch_podcasts.xml"
+ARCHIV_URL = "https://raw.githubusercontent.com/KataHaifisch/podcastamazon/main/katahaifisch_archiv.xml"
+PODCAST_20MIN_FILE = "katahaifisch_podcast.xml"  # Korrigiert: ohne 's'
 ALL_TRACKS_FILE = "applekatahaifisch_all.xml"
 
 def parse_duration(dur_str):
@@ -22,13 +22,21 @@ def parse_duration(dur_str):
         return 0
 
 def extract_track_id(text):
-    """Extrahiert die Ziffern-ID für zuverlässigen Duplikatsabgleich."""
     m = re.search(r"(\d{6,})", text)
     return m.group(1) if m else text.strip()
 
+def format_op3_url(raw_url):
+    """Verhindert doppelte OP3-Präfixe und sichert saubere https-Streams."""
+    clean = raw_url.replace("https://op3.dev/e/", "").replace("http://", "https://")
+    return f"https://op3.dev/e/{clean}"
+
 def clean_xml_content(xml_text):
-    xml_text = xml_text.replace("https://feeds.soundcloud.com/stream/", "https://op3.dev/e/https://feeds.soundcloud.com/stream/")
-    """Normalisiert GUIDs zu tag:soundcloud,2010:tracks/<id> und setzt 3000px Cover."""
+    # Verhindert Mehrfach-Ersetzungen von OP3
+    xml_text = re.sub(
+        r'(url=")(?:https://op3\.dev/e/)*(https?://feeds\.soundcloud\.com/stream/[^"]+")',
+        r'\1https://op3.dev/e/\2',
+        xml_text
+    )
     xml_text = re.sub(
         r"<guid([^>]*)>.*?(?:tracks[:/]|)(\d{6,})</guid>",
         r"<guid\1>tag:soundcloud,2010:tracks/\2</guid>",
@@ -44,7 +52,7 @@ root_sc = ET.fromstring(sc_xml)
 channel_sc = root_sc.find("channel")
 ns = {"itunes": "http://www.itunes.com/dtds/podcast-1.0.dtd"}
 
-# 2. Archiv laden (YouTube-Archiv wird nur gelesen, nie verändert)
+# 2. Archiv laden
 try:
     req_arch = urllib.request.Request(ARCHIV_URL, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(req_arch) as resp:
@@ -54,8 +62,12 @@ except:
     archive_items = []
 
 def process_feed(file_path, filter_20min=False):
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read()
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+    except FileNotFoundError:
+        print(f"Datei {file_path} nicht gefunden, wird übersprungen.")
+        return
 
     content = clean_xml_content(content)
 
@@ -80,11 +92,15 @@ def process_feed(file_path, filter_20min=False):
         title = item.find("title").text or ""
         desc_el = item.find("description")
         desc = desc_el.text if desc_el is not None and desc_el.text else title
+        # Verhindere defekte CDATA-Blöcke
+        clean_desc = desc.replace("]]>", "]]&gt;")
+        
         pub_date_el = item.find("pubDate")
         pub_date = pub_date_el.text if pub_date_el is not None and pub_date_el.text else ""
 
         enc = item.find("enclosure")
-        enc_url = enc.attrib.get("url", "") if enc is not None else ""
+        raw_enc_url = enc.attrib.get("url", "") if enc is not None else ""
+        enc_url = format_op3_url(raw_enc_url)
 
         img = item.find("itunes:image", ns)
         img_url = img.attrib.get("href", "") if img is not None else ""
@@ -94,7 +110,7 @@ def process_feed(file_path, filter_20min=False):
 
         item_xml = f"""    <item>
       <title><![CDATA[{title}]]></title>
-      <description><![CDATA[{desc}]]></description>
+      <description><![CDATA[{clean_desc}]]></description>
       <pubDate>{pub_date}</pubDate>
       <guid isPermaLink="false">{canonical_guid}</guid>
       <enclosure url="{enc_url}" length="0" type="audio/mpeg"/>
@@ -114,7 +130,6 @@ def process_feed(file_path, filter_20min=False):
                     extra_archive.append(clean_xml_content(it))
                     existing_ids.add(arch_track_id)
 
-    # Neue Episoden oben vor dem ersten <item> einfügen
     if new_items:
         first_item_match = re.search(r"(\s*<item>)", content)
         if first_item_match:
@@ -125,7 +140,6 @@ def process_feed(file_path, filter_20min=False):
             if channel_end != -1:
                 content = content[:channel_end] + "\n".join(new_items) + "\n  " + content[channel_end:]
 
-    # Fehlende Archivfolgen unten vor </channel> anfügen
     if extra_archive:
         channel_end = content.rfind("</channel>")
         if channel_end != -1:
