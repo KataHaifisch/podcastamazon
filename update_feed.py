@@ -4,7 +4,7 @@ import re
 
 SC_FEED_URL = "https://feeds.soundcloud.com/users/soundcloud:users:173046334/sounds.rss"
 ARCHIV_URL = "https://raw.githubusercontent.com/KataHaifisch/podcastamazon/main/katahaifisch_archiv.xml"
-PODCAST_20MIN_FILE = "katahaifisch_podcast.xml"  # Korrigiert: ohne 's'
+PODCAST_20MIN_FILE = "katahaifisch_podcasts.xml"  # Korrigiert: ohne 's'
 ALL_TRACKS_FILE = "applekatahaifisch_all.xml"
 
 def parse_duration(dur_str):
